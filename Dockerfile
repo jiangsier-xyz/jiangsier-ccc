@@ -6,16 +6,16 @@ USER root
 ENV DEBIAN_FRONTEND=noninteractive
 
 # base tools
-RUN apt update && \
-    apt -y --no-install-recommends install apt-transport-https apt-utils sudo bash ssh openssl ca-certificates curl wget telnet net-tools iproute2 inetutils-ping locales nfs-common rsync
+RUN apt-get update && \
+    apt-get -y --no-install-recommends install apt-transport-https apt-utils sudo bash ssh openssl ca-certificates curl wget telnet net-tools iproute2 inetutils-ping locales nfs-common rsync
 
 # common tools
-RUN apt update && \
-    apt -y --no-install-recommends install make gcc jq vim zip unzip git ffmpeg
+RUN apt-get update && \
+    apt-get -y --no-install-recommends install make gcc jq vim zip unzip git ffmpeg
 
 # python3
 ARG PYTHON_VERSION=3.14.6
-RUN apt install -y --no-install-recommends build-essential libssl-dev zlib1g-dev \
+RUN apt-get install -y --no-install-recommends build-essential libssl-dev zlib1g-dev \
     libbz2-dev libreadline-dev libsqlite3-dev llvm \
     libncurses5-dev libncursesw5-dev xz-utils tk-dev libffi-dev \
     liblzma-dev
@@ -35,12 +35,12 @@ RUN curl -sSLf https://bootstrap.pypa.io/get-pip.py | python3 - --break-system-p
 
 # jdk
 ARG JDK_VERSION=25
-RUN apt install -y --no-install-recommends gpg
+RUN apt-get install -y --no-install-recommends gpg
 RUN mkdir -p /usr/share/keyrings && \
     curl -fsSL https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --dearmor -o /usr/share/keyrings/adoptium.gpg && \
     echo "deb [signed-by=/usr/share/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" > /etc/apt/sources.list.d/adoptium.list
-RUN apt update && \
-    apt -y --no-install-recommends install temurin-${JDK_VERSION}-jdk maven
+RUN apt-get update && \
+    apt-get -y --no-install-recommends install temurin-${JDK_VERSION}-jdk maven
 
 # golang
 ARG TARGETARCH
