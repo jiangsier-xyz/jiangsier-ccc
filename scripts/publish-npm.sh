@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# publish-npm.sh — publish the cc-c npm package to the public npm registry.
+# publish-npm.sh — publish the @jiangsier/cc-c npm package to the public npm registry.
 #
 # Uses `npm publish` against registry.npmjs.org. Auth via the caller's
 # `npm login` session, or an `NPM_PUBLISH_TOKEN` (automation token) for CI.

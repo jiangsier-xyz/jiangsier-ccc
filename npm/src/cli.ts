@@ -31,7 +31,7 @@ function resolveComposeYml(): string {
   if (!fs.existsSync(candidate)) {
     throw new Error(
       `cc-c: bundled compose.yml not found at ${candidate}. The install looks incomplete; ` +
-        `reinstall cc-c (npm install -g cc-c).`
+        `reinstall @jiangsier/cc-c (npm install -g @jiangsier/cc-c).`
     );
   }
   return candidate;

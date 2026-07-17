@@ -1,5 +1,5 @@
 {
-  "name": "cc-c",
+  "name": "@jiangsier/cc-c",
   "version": "1.5.0",
   "description": "Claude Code Container — launch a containerized claude session from any project directory via docker compose",
   "keywords": [
@@ -25,7 +25,8 @@
     "prepublishOnly": "npm run clean && npm run build"
   },
   "publishConfig": {
-    "registry": "https://registry.npmjs.org"
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
   },
   "engines": {
     "node": ">=18"

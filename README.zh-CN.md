@@ -3,14 +3,14 @@
 本仓库提供两样东西：
 
 1. **Docker 镜像**（`jiangsier/ccc`）：基于 Debian `node:bookworm` 的镜像，内置完整开发工具链与 Claude Code CLI。通过 `build.sh` 多架构（amd64 + arm64）构建并推送；通过 `npm/compose.yml` 以 `claude` 作为容器入口点交互式运行。
-2. **npm 包**（`cc-c`）：一个薄包装命令 `cc-c`（TypeScript → `dist/`），在任意项目目录下把 `claude` 跑进上述镜像里。
+2. **npm 包**（`@jiangsier/cc-c`）：一个薄包装命令 `cc-c`（TypeScript → `dist/`），在任意项目目录下把 `claude` 跑进上述镜像里。
 
 ## 快速开始：使用 `cc-c`
 
 安装全局命令：
 
 ```bash
-npm install -g cc-c
+npm install -g @jiangsier/cc-c
 ```
 
 在项目目录下运行：
@@ -69,9 +69,9 @@ CC_PROJECT=$(basename $PWD) docker compose -f npm/compose.yml run --rm ccc
 | --- | --- |
 | `Dockerfile` | 镜像定义（node:bookworm + 工具链 + claude） |
 | `build.sh` | 多架构构建并推送 `jiangsier/ccc` |
-| `npm/` | `cc-c` npm 包源码（`src/cli.ts` → `dist/cli.js`） |
+| `npm/` | `@jiangsier/cc-c` npm 包源码（`src/cli.ts` → `dist/cli.js`） |
 | `npm/compose.yml` | 容器运行配置（entrypoint 为 `claude`，挂载配置/项目/ssh）；仓库本地运行与包内 `cc-c` 共用此文件 |
-| `scripts/publish-npm.sh` | 将 `cc-c` 发布到 npm 公共仓库 |
+| `scripts/publish-npm.sh` | 将 `@jiangsier/cc-c` 发布到 npm 公共仓库 |
 
 ## License
 

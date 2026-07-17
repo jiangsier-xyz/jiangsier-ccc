@@ -7,7 +7,7 @@
 ## Installation
 
 ```bash
-npm install -g cc-c
+npm install -g @jiangsier/cc-c
 ```
 
 This gives you a global `cc-c` command.

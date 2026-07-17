@@ -3,14 +3,14 @@
 This repo provides two things:
 
 1. **Docker image** (`jiangsier/ccc`): a Debian `node:bookworm`-based image with a full dev toolchain and the Claude Code CLI built in. Built and pushed multi-arch (amd64 + arm64) via `build.sh`; run interactively through `npm/compose.yml` with `claude` as the container entrypoint.
-2. **npm package** (`cc-c`): a thin `cc-c` command (TypeScript → `dist/`) that runs `claude` inside the above image from any project directory.
+2. **npm package** (`@jiangsier/cc-c`): a thin `cc-c` command (TypeScript → `dist/`) that runs `claude` inside the above image from any project directory.
 
 ## Quick start: using `cc-c`
 
 Install the global command:
 
 ```bash
-npm install -g cc-c
+npm install -g @jiangsier/cc-c
 ```
 
 Run it from a project directory:
@@ -69,9 +69,9 @@ CC_PROJECT=$(basename $PWD) docker compose -f npm/compose.yml run --rm ccc
 | --- | --- |
 | `Dockerfile` | Image definition (node:bookworm + toolchain + claude) |
 | `build.sh` | Multi-arch build and push of `jiangsier/ccc` |
-| `npm/` | `cc-c` npm package source (`src/cli.ts` → `dist/cli.js`) |
+| `npm/` | `@jiangsier/cc-c` npm package source (`src/cli.ts` → `dist/cli.js`) |
 | `npm/compose.yml` | Container run config (entrypoint is `claude`, mounts config/project/ssh); shared by local repo runs and the bundled `cc-c` CLI |
-| `scripts/publish-npm.sh` | Publishes `cc-c` to the public npm registry |
+| `scripts/publish-npm.sh` | Publishes `@jiangsier/cc-c` to the public npm registry |
 
 ## License
 
