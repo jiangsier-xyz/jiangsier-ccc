@@ -31,13 +31,13 @@ RUN cd /tmp/Python-${PYTHON_VERSION} && \
 # config
 RUN update-alternatives --install /usr/bin/python python /usr/local/bin/python3 1
 # pip
-RUN curl -sSLf https://bootstrap.pypa.io/get-pip.py | python3 - --break-system-packages
+RUN bash -eo pipefail -c 'curl -sSLf https://bootstrap.pypa.io/get-pip.py | python3 - --break-system-packages'
 
 # jdk
 ARG JDK_VERSION=25
 RUN apt-get install -y --no-install-recommends gpg
 RUN mkdir -p /usr/share/keyrings && \
-    curl -fsSL https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --dearmor -o /usr/share/keyrings/adoptium.gpg && \
+    bash -eo pipefail -c 'curl -fsSL https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --dearmor -o /usr/share/keyrings/adoptium.gpg' && \
     echo "deb [signed-by=/usr/share/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" > /etc/apt/sources.list.d/adoptium.list
 RUN apt-get update && \
     apt-get -y --no-install-recommends install temurin-${JDK_VERSION}-jdk maven
@@ -68,6 +68,15 @@ RUN echo "export LC_ALL=en_US.UTF-8" >> /home/node/.bashrc && \
     echo "export LANG=en_US.UTF-8" >> /home/node/.bashrc && \
     echo "export LANGUAGE=en_US:en" >> /home/node/.bashrc
 
-RUN curl -kfsSL https://claude.ai/install.sh | bash
+# gh
+ARG GH_VERSION=2.97.0
+RUN curl -sL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_${TARGETARCH}.tar.gz" -o /tmp/gh.tar.gz && \
+    mkdir -p /home/node/.local/bin && \
+    tar -xzf /tmp/gh.tar.gz -C /tmp && \
+    cp "/tmp/gh_${GH_VERSION}_linux_${TARGETARCH}/bin/gh" /home/node/.local/bin/gh && \
+    chmod +x /home/node/.local/bin/gh
+
+# claude code
+RUN bash -eo pipefail -c 'curl -fsSLk https://claude.ai/install.sh | bash'
 
 WORKDIR /home/node

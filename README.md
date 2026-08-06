@@ -60,7 +60,7 @@ Build multi-arch (amd64 + arm64) and push:
 Run an interactive `claude` directly with the image:
 
 ```bash
-CC_PROJECT=$(basename $PWD) docker compose -f npm/compose.yml run --rm ccc
+CCC_PROJECT=$(basename $PWD) docker compose -f npm/compose.yml run --rm ccc
 ```
 
 ## Directory layout
