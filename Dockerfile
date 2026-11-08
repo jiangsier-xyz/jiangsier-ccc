@@ -14,7 +14,7 @@ RUN apt-get update && \
     apt-get -y --no-install-recommends install make gcc jq vim zip unzip git ffmpeg
 
 # python3
-ARG PYTHON_VERSION=3.14.6
+ARG PYTHON_VERSION=3.15.2
 RUN apt-get install -y --no-install-recommends build-essential libssl-dev zlib1g-dev \
     libbz2-dev libreadline-dev libsqlite3-dev llvm \
     libncurses5-dev libncursesw5-dev xz-utils tk-dev libffi-dev \
@@ -32,6 +32,15 @@ RUN cd /tmp/Python-${PYTHON_VERSION} && \
 RUN update-alternatives --install /usr/bin/python python /usr/local/bin/python3 1
 # pip
 RUN bash -eo pipefail -c 'curl -sSLf https://bootstrap.pypa.io/get-pip.py | python3 - --break-system-packages'
+# pip mirror — build-time overridable:
+#   docker build --build-arg PIP_INDEX_URL=https://pypi.org/simple/ ...
+# The `--global` file-option (writing /etc/pip.conf) is required, not optional:
+# this step runs as root while the image runs as `node`, and pip's default level
+# is `user` — that would land in /root/.config/pip/pip.conf and never be read by
+# the user that actually runs pip. Note the doubled word: `--global` selects the
+# config file, the `global.` prefix selects the [global] ini section.
+ARG PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
+RUN pip config set --global global.index-url ${PIP_INDEX_URL}
 
 # jdk
 ARG JDK_VERSION=25
@@ -44,7 +53,7 @@ RUN apt-get update && \
 
 # golang
 ARG TARGETARCH
-ARG GO_VERSION=1.26.5
+ARG GO_VERSION=1.27.3
 RUN curl -fsSLo /tmp/go${GO_VERSION}.linux-${TARGETARCH}.tar.gz https://go.dev/dl/go${GO_VERSION}.linux-${TARGETARCH}.tar.gz && \
     tar -xzf /tmp/go${GO_VERSION}.linux-${TARGETARCH}.tar.gz -C /usr/local && \
     rm -f /tmp/go${GO_VERSION}.linux-${TARGETARCH}.tar.gz
@@ -69,7 +78,7 @@ RUN echo "export LC_ALL=en_US.UTF-8" >> /home/node/.bashrc && \
     echo "export LANGUAGE=en_US:en" >> /home/node/.bashrc
 
 # gh
-ARG GH_VERSION=2.97.0
+ARG GH_VERSION=2.103.3
 RUN curl -sL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_${TARGETARCH}.tar.gz" -o /tmp/gh.tar.gz && \
     mkdir -p /home/node/.local/bin && \
     tar -xzf /tmp/gh.tar.gz -C /tmp && \
