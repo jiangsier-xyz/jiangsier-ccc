@@ -8,10 +8,13 @@
  *   1. Detects the project directory ($PWD) and project name (basename of $PWD).
  *   2. Exports CCC_PROJECT_DIR=<cwd> and CCC_PROJECT=<basename>.
  *   3. Writes the bundled compose.yml to a temp file and runs:
- *        docker compose -f <tmp> run --rm ccc <your args...>
+ *        docker compose -f <tmp> --env-file <bundled .env> run --rm ccc <your args...>
  *      The compose service's entrypoint is `claude`, so every flag passed to
  *      `cc-c` is forwarded to `claude` — e.g. `cc-c --dangerously-skip-permissions`
  *      runs `claude --dangerously-skip-permissions` inside the container.
+ *
+ * The bundled `.env` supplies CCC_VERSION, which compose.yml interpolates into
+ * the default image tag. It has to be passed explicitly: see resolveEnvFile().
  *
  * The container (host network) mounts the host `~/.claude` (settings) → `/root/.claude`,
  * the current project directory → `/root/<project>`, and `~/.ssh` (credentials) →
@@ -37,6 +40,26 @@ function resolveComposeYml(): string {
   return candidate;
 }
 
+/**
+ * Locate the `.env` bundled alongside compose.yml (dist/../.env), or null.
+ *
+ * Compose auto-loads `.env` from the *project directory*, which defaults to the
+ * directory of the first `-f` file. main() copies compose.yml into os.tmpdir()
+ * (because `run` needs stdin for the container TTY), so without an explicit
+ * `--env-file` compose would look for /tmp/.env and silently miss the bundled
+ * one — the image tag would fall back to compose.yml's hardcoded default.
+ *
+ * Returning null (rather than throwing) lets us omit the flag entirely, since
+ * compose treats a missing `--env-file` path as a hard error.
+ *
+ * Precedence: a real environment variable beats the `.env` file, so
+ * `CCC_VERSION=1.7 cc-c` still works as an override.
+ */
+function resolveEnvFile(): string | null {
+  const candidate = path.join(__dirname, "..", ".env");
+  return fs.existsSync(candidate) ? candidate : null;
+}
+
 /** Return true if `docker` is runnable on PATH. */
 function hasDocker(): boolean {
   const r = spawnSync("docker", ["--version"], { stdio: "ignore" });
@@ -54,8 +77,8 @@ function main(): void {
   const cwd = process.cwd();
   const project = path.basename(cwd) || "project";
 
-  // Forward the project dir/name to compose as env vars (do NOT set CCC_IMAGE —
-  // let it default to the image defined in the bundled compose.yml).
+  // Forward the project dir/name to compose as env vars (do NOT set CCC_IMAGE or
+  // CCC_VERSION — let them come from the bundled .env / compose.yml defaults).
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     CCC_PROJECT_DIR: cwd,
@@ -81,6 +104,10 @@ function main(): void {
   const tmpFile = path.join(os.tmpdir(), `ccc-compose-${process.pid}.yml`);
   fs.writeFileSync(tmpFile, composeYml, { mode: 0o600 });
 
+  // Resolve the bundled .env *before* spawning — see resolveEnvFile() for why
+  // compose's own auto-discovery cannot find it from the temp file's directory.
+  const envFile = resolveEnvFile();
+
   const cleanup = (): void => {
     try {
       fs.unlinkSync(tmpFile);
@@ -89,11 +116,18 @@ function main(): void {
     }
   };
 
-  const child = spawn(
-    "docker",
-    ["compose", "-f", tmpFile, "run", "--rm", "ccc", ...args],
-    { env, stdio: "inherit" }
-  );
+  const composeArgs = [
+    "compose",
+    "-f",
+    tmpFile,
+    ...(envFile ? ["--env-file", envFile] : []),
+    "run",
+    "--rm",
+    "ccc",
+    ...args,
+  ];
+
+  const child = spawn("docker", composeArgs, { env, stdio: "inherit" });
 
   // If spawn itself fails (e.g. docker vanished mid-run), clean up and exit.
   child.on("error", (err) => {

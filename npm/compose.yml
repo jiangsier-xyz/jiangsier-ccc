@@ -1,6 +1,6 @@
 services:
   ccc:
-    image: ${CCC_IMAGE:-jiangsier/ccc:1.5}
+    image: ${CCC_IMAGE:-jiangsier/ccc:${CCC_VERSION:-1.6}}
     env_file:
       - path: .env
         required: false

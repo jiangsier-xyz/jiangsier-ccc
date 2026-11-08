@@ -131,6 +131,10 @@ web_modules/
 .env.production.local
 .env.local
 .env
+# ...except npm/.env, which is the tracked single source of truth for
+# CCC_VERSION (image tag + npm package version). Must stay in git and in the
+# published tarball, or consumers silently fall back to a hardcoded default.
+!npm/.env
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache

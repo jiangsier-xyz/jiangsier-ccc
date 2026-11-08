@@ -1,6 +1,6 @@
 {
   "name": "@jiangsier/cc-c",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Claude Code Container — launch a containerized claude session from any project directory via docker compose",
   "keywords": [
     "claude-code",
@@ -17,6 +17,7 @@
   "files": [
     "dist",
     "compose.yml",
+    ".env",
     "README.md"
   ],
   "scripts": {
