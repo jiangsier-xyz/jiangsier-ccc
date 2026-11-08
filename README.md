@@ -42,14 +42,16 @@ The container image (`jiangsier/ccc`) ships a complete dev toolchain, so `claude
 
 - **C/C++**: `gcc`, `make`
 - **Java**: `temurin-25-jdk`, `maven`
-- **Python**: `python3` (3.14.6), `pip`, `venv` (pip index pointed at `mirrors.aliyun.com`)
-- **Node**: `node` (26.5.0), `npm`, from the `node:bookworm` base image
-- **Golang**: `go` (1.26.5)
+- **Python**: `python3` (3.15.2), `pip`, `venv` — built from source; pip's index defaults to `mirrors.aliyun.com`, overridable at build time via `--build-arg PIP_INDEX_URL=...`
+- **Node**: `node` (LTS) and `npm`, from the `node:bookworm` base image — a floating tag, so the exact version tracks upstream on each rebuild
+- **Golang**: `go` (1.27.3)
 - **Others**: `git`, `zip`/`unzip`, `vim`, `ffmpeg`, `ssh`/`openssl`/`curl`/`wget`, `net-tools`/`iproute2`, `nfs-common`, `rsync`, `clawhub`, etc.
 
 See [`Dockerfile`](Dockerfile) for details.
 
 ## Building the Docker image
+
+The release version has a single source of truth: `CCC_VERSION` in [`npm/.env`](npm/.env). It drives the Docker tag (`build.sh`), the default image tag (`npm/compose.yml`) and the npm package version (`scripts/publish-npm.sh`, as `${CCC_VERSION}.0`). To cut a release, bump that one value — then build and push the image **before** publishing the CLI, since the published CLI defaults to pulling that exact tag.
 
 Build multi-arch (amd64 + arm64) and push:
 
@@ -71,6 +73,7 @@ CCC_PROJECT=$(basename $PWD) docker compose -f npm/compose.yml run --rm ccc
 | `build.sh` | Multi-arch build and push of `jiangsier/ccc` |
 | `npm/` | `@jiangsier/cc-c` npm package source (`src/cli.ts` → `dist/cli.js`) |
 | `npm/compose.yml` | Container run config (entrypoint is `claude`, mounts config/project/ssh); shared by local repo runs and the bundled `cc-c` CLI |
+| `npm/.env` | `CCC_VERSION` — single source of truth for the release version (Docker tag, default image tag, npm package version). Tracked in git via a `!npm/.env` negation in `.gitignore` |
 | `scripts/publish-npm.sh` | Publishes `@jiangsier/cc-c` to the public npm registry |
 
 ## License
