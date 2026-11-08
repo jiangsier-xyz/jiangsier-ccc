@@ -42,14 +42,16 @@ cc-c --dangerously-skip-permissions # 任意 claude 参数都会透传给容器�
 
 - **C/C++**：`gcc`、`make`
 - **Java**：`temurin-25-jdk`、`maven`
-- **Python**：`python3`（3.14.6）、`pip`、`venv`（pip 镜像源已指向 `mirrors.aliyun.com`）
-- **Node**：`node`（26.5.0）、`npm`，来自基础镜像 `node:bookworm`
-- **Golang**：`go`（1.26.5）
+- **Python**：`python3`（3.15.2）、`pip`、`venv` —— 从源码编译；pip 镜像源默认为 `mirrors.aliyun.com`，构建时可用 `--build-arg PIP_INDEX_URL=...` 覆盖
+- **Node**：`node`（LTS）、`npm`，来自基础镜像 `node:bookworm`（浮动 tag，具体版本随每次重建跟随上游）
+- **Golang**：`go`（1.27.3）
 - **其它**：`git`、`zip`/`unzip`、`vim`、`ffmpeg`、`ssh`/`openssl`/`curl`/`wget`、`net-tools`/`iproute2`、`nfs-common`、`rsync`、`clawhub` 等等
 
 参考 [`Dockerfile`](Dockerfile) 了解细节。
 
 ## 构建 Docker 镜像
+
+版本号只有一个来源：[`npm/.env`](npm/.env) 里的 `CCC_VERSION`。它同时决定 Docker tag（`build.sh`）、默认镜像 tag（`npm/compose.yml`）以及 npm 包版本（`scripts/publish-npm.sh`，取 `${CCC_VERSION}.0`）。发新版时只需改这一个值 —— 但必须**先**构建并推送镜像，**再**发布 CLI，因为已发布的 CLI 默认会去拉这个具体 tag。
 
 多架构（amd64 + arm64）构建并推送：
 
@@ -60,7 +62,7 @@ cc-c --dangerously-skip-permissions # 任意 claude 参数都会透传给容器�
 直接用镜像跑一次交互式 claude：
 
 ```bash
-CC_PROJECT=$(basename $PWD) docker compose -f npm/compose.yml run --rm ccc
+CCC_PROJECT=$(basename $PWD) docker compose -f npm/compose.yml run --rm ccc
 ```
 
 ## 目录结构
@@ -71,6 +73,7 @@ CC_PROJECT=$(basename $PWD) docker compose -f npm/compose.yml run --rm ccc
 | `build.sh` | 多架构构建并推送 `jiangsier/ccc` |
 | `npm/` | `@jiangsier/cc-c` npm 包源码（`src/cli.ts` → `dist/cli.js`） |
 | `npm/compose.yml` | 容器运行配置（entrypoint 为 `claude`，挂载配置/项目/ssh）；仓库本地运行与包内 `cc-c` 共用此文件 |
+| `npm/.env` | `CCC_VERSION` —— 版本号的唯一来源（Docker tag、默认镜像 tag、npm 包版本）。通过 `.gitignore` 里的 `!npm/.env` 反向规则纳入版本控制 |
 | `scripts/publish-npm.sh` | 将 `@jiangsier/cc-c` 发布到 npm 公共仓库 |
 
 ## License

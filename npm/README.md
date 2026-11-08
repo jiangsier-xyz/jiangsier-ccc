@@ -16,10 +16,10 @@ This gives you a global `cc-c` command.
 
 - Docker is installed on the host, and `docker compose` works.
 - **The host's `~/.claude/` directory must have Claude configured** (login credentials, settings, etc.). The container mounts the host's `~/.claude` to `/home/node/.claude` inside the container, so `claude` reuses the host configuration directly. If the host's `~/.claude/` is not configured (e.g. not logged in), `claude` in the container won't work either. You can run `claude` once on the host to complete login and initial setup.
-- The container image is pulled from `jiangsier/ccc:latest` on Docker Hub by default. To override, set the `CCC_IMAGE` environment variable, e.g.:
+- The container image is pulled from `jiangsier/ccc:1.6` on Docker Hub by default. The tag comes from `CCC_VERSION` in the `.env` bundled inside this package. To override, set the `CCC_IMAGE` environment variable, e.g.:
 
   ```bash
-  CCC_IMAGE=jiangsier/ccc:latest cc-c
+  CCC_IMAGE=jiangsier/ccc:1.6 cc-c
   ```
 
 ## Built-in tools in the image
@@ -28,9 +28,9 @@ The container image (`jiangsier/ccc`) ships a complete dev toolchain, so `claude
 
 - **C/C++**: `gcc`, `make`
 - **Java**: `temurin-25-jdk`, `maven`
-- **Python**: `python3` (3.14.6), `pip`, `venv` (pip index pointed at `mirrors.aliyun.com`)
-- **Node**: `node` (26.5.0), `npm`, from the `node:bookworm` base image
-- **Golang**: `go` (1.26.5)
+- **Python**: `python3` (3.15.2), `pip`, `venv` — built from source; pip's index defaults to `mirrors.aliyun.com`, overridable at build time via `--build-arg PIP_INDEX_URL=...`
+- **Node**: `node` (LTS) and `npm`, from the `node:bookworm` base image — a floating tag, so the exact version tracks upstream on each rebuild
+- **Golang**: `go` (1.27.3)
 - **Others**: `git`, `zip`/`unzip`, `vim`, `ffmpeg`, `ssh`/`openssl`/`curl`/`wget`, `net-tools`/`iproute2`, `nfs-common`, `rsync`, `clawhub`, etc.
 
 ## Usage
@@ -57,8 +57,10 @@ cc-c --dangerously-skip-permissions
 3. Uses the `compose.yml` bundled inside the package (no `compose.yml` is needed in the current directory) to run:
 
    ```bash
-   docker compose -f <temp compose.yml> run --rm ccc <your cc-c args...>
+   docker compose -f <temp compose.yml> --env-file <bundled .env> run --rm ccc <your cc-c args...>
    ```
+
+   The bundled `.env` supplies `CCC_VERSION`, which `compose.yml` interpolates into the default image tag. It is passed explicitly via `--env-file` because compose would otherwise look for `.env` next to the temp file, not next to the package.
 
 The compose service's `entrypoint` is `claude`, so the arguments following `cc-c` are ultimately handed to `claude` inside the container.
 
@@ -74,7 +76,8 @@ Optional environment variables:
 
 | Variable | Purpose | Default |
 | --- | --- | --- |
-| `CCC_IMAGE` | Override the container image | `jiangsier/ccc:latest` |
+| `CCC_IMAGE` | Override the container image | `jiangsier/ccc:1.6` |
+| `CCC_VERSION` | Image tag used when `CCC_IMAGE` is unset; read from the bundled `.env` | `1.6` |
 | `CCC_CONFIG_DIR` | Host Claude config directory | `$HOME/.claude` |
 | `CCC_PROJECT_DIR` | Host project directory (auto-set by `cc-c` to the current directory) | `$PWD` |
 | `CCC_PROJECT` | Container project mount basename and working-directory name (auto-set by `cc-c`) | `$(basename $PWD)` |
