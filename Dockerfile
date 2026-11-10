@@ -86,6 +86,7 @@ RUN curl -sL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${G
     chmod +x /home/node/.local/bin/gh
 
 # claude code
-RUN bash -eo pipefail -c 'curl -fsSLk https://claude.ai/install.sh | bash'
+ARG CC_VERSION=2.1.322
+RUN bash -eo pipefail -c "curl -fsSLk https://claude.ai/install.sh | bash -s -- '${CC_VERSION}'"
 
 WORKDIR /home/node
